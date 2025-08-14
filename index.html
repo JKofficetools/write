@@ -1,0 +1,4375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JK Write - Professional Word Processor</title>
+    
+    <!-- CDN Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.93/epub.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.1.1/turndown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-bg: #1e293b;
+            --dark-surface: #334155;
+            --dark-text: #f1f5f9;
+            --brand-gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            background-color: #f8fafc;
+        }
+        
+        .dark-mode {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+        
+        .dark-mode .toolbar {
+            background-color: var(--dark-surface);
+            border-bottom: 1px solid #475569;
+        }
+        
+        .dark-mode .ql-toolbar {
+            background-color: var(--dark-surface);
+            border-bottom: 1px solid #475569;
+        }
+        
+        .dark-mode .ql-container {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+            border: none;
+        }
+        
+        .dark-mode .ql-editor {
+            color: var(--dark-text);
+        }
+        
+        .dark-mode .sidebar {
+            background-color: var(--dark-surface);
+            border-right: 1px solid #475569;
+        }
+        
+        .dark-mode .menu-item {
+            color: var(--dark-text);
+        }
+        
+        .dark-mode .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .toolbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .toolbar-section {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            margin-right: 24px;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--brand-gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            margin-right: 10px;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+        }
+        
+        .app-name {
+            font-size: 20px;
+            font-weight: 700;
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+        
+        .toolbar-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            margin: 0 2px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .toolbar-button:hover {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+        
+        .dark-mode .toolbar-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .toolbar-button.active {
+            background-color: #dbeafe;
+            color: var(--primary-color);
+        }
+        
+        .dark-mode .toolbar-button.active {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        
+        .toolbar-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: var(--danger-color);
+            color: white;
+            font-size: 10px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .editor-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        
+        .sidebar {
+            width: 60px;
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 0;
+        }
+        
+        .menu-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            color: #64748b;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .menu-item:hover {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+        
+        .menu-item.active {
+            background-color: #dbeafe;
+            color: var(--primary-color);
+        }
+        
+        .dark-mode .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark-mode .menu-item.active {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        
+        .menu-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: var(--accent-color);
+            color: white;
+            font-size: 10px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .editor-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #editor {
+            height: 100%;
+            overflow-y: auto;
+            background-color: #ffffff;
+        }
+        
+        .dark-mode #editor {
+            background-color: var(--dark-bg);
+        }
+        
+        .collaboration-panel {
+            position: fixed;
+            right: 20px;
+            top: 80px;
+            width: 320px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            z-index: 100;
+            display: none;
+        }
+        
+        .dark-mode .collaboration-panel {
+            background-color: var(--dark-surface);
+            color: var(--dark-text);
+        }
+        
+        .collaboration-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .collaboration-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .collaboration-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .collaboration-close:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .dark-mode .collaboration-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .peer-list {
+            margin-top: 20px;
+        }
+        
+        .peer-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .peer-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .dark-mode .peer-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .peer-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--brand-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .peer-info {
+            flex: 1;
+        }
+        
+        .peer-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .peer-id-text {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .dark-mode .peer-id-text {
+            color: #94a3b8;
+        }
+        
+        .peer-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 16px;
+            width: 500px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        
+        .dark-mode .modal-content {
+            background-color: var(--dark-surface);
+            color: var(--dark-text);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dark-mode .modal-header {
+            border-bottom: 1px solid #475569;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 24px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-close:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .dark-mode .modal-close:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .dark-mode .modal-footer {
+            border-top: 1px solid #475569;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .dark-mode .btn-secondary {
+            background-color: #475569;
+            color: #f1f5f9;
+        }
+        
+        .dark-mode .btn-secondary:hover {
+            background-color: #64748b;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .dark-mode .form-label {
+            color: #f1f5f9;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .dark-mode .form-control {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+        
+        .dark-mode .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .status-bar {
+            height: 32px;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .dark-mode .status-bar {
+            background-color: var(--dark-surface);
+            border-top: 1px solid #475569;
+            color: #94a3b8;
+        }
+        
+        .status-item {
+            margin-right: 16px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        
+        .status-online {
+            background-color: var(--secondary-color);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+        
+        .status-offline {
+            background-color: var(--danger-color);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+        
+        .voice-indicator {
+            display: none;
+            align-items: center;
+            color: var(--primary-color);
+            margin-right: 16px;
+        }
+        
+        .voice-indicator.active {
+            display: flex;
+        }
+        
+        .voice-animation {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            position: relative;
+        }
+        
+        .voice-animation span {
+            position: absolute;
+            height: 100%;
+            width: 2px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+            animation: voice-wave 1.2s infinite ease-in-out;
+        }
+        
+        .voice-animation span:nth-child(1) {
+            left: 0;
+            animation-delay: 0.2s;
+        }
+        
+        .voice-animation span:nth-child(2) {
+            left: 5px;
+            animation-delay: 0.4s;
+        }
+        
+        .voice-animation span:nth-child(3) {
+            left: 10px;
+            animation-delay: 0.6s;
+        }
+        
+        @keyframes voice-wave {
+            0%, 100% {
+                transform: scaleY(0.4);
+            }
+            50% {
+                transform: scaleY(1);
+            }
+        }
+        
+        .document-title {
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #374151;
+            padding: 6px 10px;
+            border-radius: 6px;
+            width: 300px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .document-title:focus {
+            outline: none;
+            background-color: #f1f5f9;
+        }
+        
+        .dark-mode .document-title {
+            color: #f1f5f9;
+        }
+        
+        .dark-mode .document-title:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .export-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+        
+        .export-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .export-option:hover {
+            background-color: #f8fafc;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .dark-mode .export-option {
+            border-color: #475569;
+        }
+        
+        .dark-mode .export-option:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary-color);
+        }
+        
+        .export-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+        
+        .export-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #475569;
+        }
+        
+        .dark-mode .export-name {
+            color: #94a3b8;
+        }
+        
+        .peer-id-container {
+            display: flex;
+            align-items: center;
+            margin-top: 16px;
+        }
+        
+        .peer-id-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px 0 0 8px;
+            font-size: 14px;
+        }
+        
+        .dark-mode .peer-id-input {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+        
+        .peer-id-button {
+            padding: 10px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .peer-id-button:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 16px 20px;
+            max-width: 320px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .dark-mode .notification {
+            background-color: var(--dark-surface);
+            color: var(--dark-text);
+        }
+        
+        .notification-icon {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+        
+        .notification-success .notification-icon {
+            color: var(--secondary-color);
+        }
+        
+        .notification-error .notification-icon {
+            color: var(--danger-color);
+        }
+        
+        .notification-info .notification-icon {
+            color: var(--primary-color);
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .notification-message {
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .dark-mode .notification-message {
+            color: #94a3b8;
+        }
+        
+        .notification-close {
+            margin-left: 12px;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 18px;
+        }
+        
+        .dark-mode .notification-close {
+            color: #94a3b8;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+        
+        .template-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .template-card:hover {
+            background-color: #f8fafc;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .dark-mode .template-card {
+            border-color: #475569;
+        }
+        
+        .dark-mode .template-card:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--primary-color);
+        }
+        
+        .template-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .template-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .dark-mode .template-name {
+            color: #f1f5f9;
+        }
+        
+        .find-replace-container {
+            margin-bottom: 20px;
+        }
+        
+        .find-replace-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        
+        .find-replace-label {
+            width: 80px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .dark-mode .find-replace-label {
+            color: #f1f5f9;
+        }
+        
+        .find-replace-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .dark-mode .find-replace-input {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+        
+        .find-replace-options {
+            display: flex;
+            gap: 20px;
+            margin-top: 16px;
+        }
+        
+        .find-replace-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .find-replace-option input {
+            margin-right: 6px;
+        }
+        
+        .find-replace-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .comment {
+            background-color: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+            position: relative;
+        }
+        
+        .dark-mode .comment {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .dark-mode .comment-author {
+            color: #f1f5f9;
+        }
+        
+        .comment-time {
+            font-size: 12px;
+            color: #64748b;
+        }
+        
+        .dark-mode .comment-time {
+            color: #94a3b8;
+        }
+        
+        .comment-body {
+            color: #374151;
+            line-height: 1.5;
+        }
+        
+        .dark-mode .comment-body {
+            color: #e2e8f0;
+        }
+        
+        .comment-delete {
+            cursor: pointer;
+            color: #64748b;
+            margin-left: 8px;
+        }
+        
+        .dark-mode .comment-delete {
+            color: #94a3b8;
+        }
+        
+        .comment-delete:hover {
+            color: var(--danger-color);
+        }
+        
+        .track-changes-panel {
+            position: fixed;
+            right: 20px;
+            top: 80px;
+            width: 320px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            z-index: 100;
+            display: none;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .dark-mode .track-changes-panel {
+            background-color: var(--dark-surface);
+            color: var(--dark-text);
+        }
+        
+        .change-item {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background-color: #f8fafc;
+        }
+        
+        .dark-mode .change-item {
+            border-bottom-color: #475569;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .change-type {
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .change-type.addition {
+            color: var(--secondary-color);
+        }
+        
+        .change-type.deletion {
+            color: var(--danger-color);
+        }
+        
+        .change-type.modification {
+            color: var(--accent-color);
+        }
+        
+        .change-content {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+        
+        .dark-mode .change-content {
+            color: #94a3b8;
+        }
+        
+        .change-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .dark-mode .change-meta {
+            color: #94a3b8;
+        }
+        
+        .change-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .change-action {
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .change-action.accept {
+            color: var(--secondary-color);
+        }
+        
+        .change-action.accept:hover {
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+        
+        .change-action.reject {
+            color: var(--danger-color);
+        }
+        
+        .change-action.reject:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .table-editor {
+            margin-top: 20px;
+        }
+        
+        .table-size-selector {
+            display: grid;
+            grid-template-columns: repeat(10, 28px);
+            grid-template-rows: repeat(10, 28px);
+            gap: 2px;
+            margin-bottom: 16px;
+            justify-content: center;
+        }
+        
+        .table-cell {
+            border: 1px solid #d1d5db;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+        
+        .table-cell:hover {
+            background-color: #dbeafe;
+        }
+        
+        .dark-mode .table-cell {
+            border-color: #475569;
+        }
+        
+        .dark-mode .table-cell:hover {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        
+        .table-cell.selected {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .word-prediction {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: none;
+            min-width: 150px;
+        }
+        
+        .dark-mode .word-prediction {
+            background-color: var(--dark-surface);
+            border-color: #475569;
+        }
+        
+        .prediction-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.1s ease;
+        }
+        
+        .prediction-item:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .dark-mode .prediction-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .stat-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8fafc;
+        }
+        
+        .dark-mode .stat-card {
+            border-color: #475569;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .dark-mode .stat-label {
+            color: #94a3b8;
+        }
+        
+        .recovery-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            padding: 20px;
+            max-width: 320px;
+            z-index: 1000;
+            display: none;
+            animation: slideInLeft 0.3s ease;
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .dark-mode .recovery-panel {
+            background-color: var(--dark-surface);
+            color: var(--dark-text);
+        }
+        
+        .recovery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .recovery-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .recovery-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            font-size: 20px;
+        }
+        
+        .dark-mode .recovery-close {
+            color: #94a3b8;
+        }
+        
+        .recovery-message {
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        
+        .dark-mode .recovery-message {
+            color: #cbd5e1;
+        }
+        
+        .recovery-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        
+        .toolbar-customizer {
+            margin-top: 20px;
+        }
+        
+        .toolbar-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .toolbar-section-custom {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            background-color: #f8fafc;
+        }
+        
+        .dark-mode .toolbar-section-custom {
+            border-color: #475569;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1e293b;
+        }
+        
+        .dark-mode .section-title {
+            color: #f1f5f9;
+        }
+        
+        .toolbar-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .toolbar-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .toolbar-item.enabled {
+            background-color: #dbeafe;
+            color: var(--primary-color);
+        }
+        
+        .dark-mode .toolbar-item.enabled {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        
+        .toolbar-item:not(.enabled) {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .dark-mode .toolbar-item:not(.enabled) {
+            background-color: #475569;
+            color: #94a3b8;
+        }
+        
+        .toolbar-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .about-modal .modal-body {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .about-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--brand-gradient);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 32px;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .about-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--brand-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .about-version {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        
+        .dark-mode .about-version {
+            color: #94a3b8;
+        }
+        
+        .about-description {
+            font-size: 14px;
+            color: #475569;
+            line-height: 1.6;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .dark-mode .about-description {
+            color: #cbd5e1;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 50px;
+            }
+            
+            .menu-item {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .toolbar-section {
+                margin-right: 10px;
+            }
+            
+            .document-title {
+                width: 120px;
+            }
+            
+            .collaboration-panel {
+                width: 280px;
+            }
+            
+            .track-changes-panel {
+                width: 280px;
+            }
+            
+            .app-name {
+                display: none;
+            }
+            
+            .brand-logo {
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-section">
+            <div class="brand-logo">
+                <div class="logo-icon">JK</div>
+                <div class="app-name">JK Write</div>
+            </div>
+        </div>
+        
+        <div class="toolbar-section">
+            <input type="text" class="document-title" id="document-title" value="Untitled Document">
+        </div>
+        
+        <div class="toolbar-section">
+            <button class="toolbar-button" id="btn-file" title="File">
+                <i class="fas fa-file"></i>
+            </button>
+            <button class="toolbar-button" id="btn-edit" title="Edit">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="toolbar-button" id="btn-view" title="View">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="toolbar-button" id="btn-insert" title="Insert">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="toolbar-button" id="btn-format" title="Format">
+                <i class="fas fa-font"></i>
+            </button>
+            <button class="toolbar-button" id="btn-tools" title="Tools">
+                <i class="fas fa-tools"></i>
+            </button>
+            <button class="toolbar-button" id="btn-help" title="Help">
+                <i class="fas fa-question-circle"></i>
+            </button>
+        </div>
+        
+        <div class="toolbar-section ml-auto">
+            <button class="toolbar-button" id="btn-templates" title="Templates">
+                <i class="fas fa-file-alt"></i>
+            </button>
+            <button class="toolbar-button" id="btn-find-replace" title="Find and Replace">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="toolbar-button" id="btn-comments" title="Comments">
+                <i class="fas fa-comment"></i>
+                <span class="toolbar-badge" id="comment-badge" style="display: none;">0</span>
+            </button>
+            <button class="toolbar-button" id="btn-track-changes" title="Track Changes">
+                <i class="fas fa-history"></i>
+                <span class="toolbar-badge" id="changes-badge" style="display: none;">0</span>
+            </button>
+            <button class="toolbar-button" id="btn-table" title="Insert Table">
+                <i class="fas fa-table"></i>
+            </button>
+            <button class="toolbar-button" id="btn-word-prediction" title="Word Prediction">
+                <i class="fas fa-spell-check"></i>
+            </button>
+            <button class="toolbar-button" id="btn-stats" title="Document Statistics">
+                <i class="fas fa-chart-bar"></i>
+            </button>
+            <button class="toolbar-button" id="btn-voice" title="Voice Typing">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button class="toolbar-button" id="btn-collaborate" title="Collaborate">
+                <i class="fas fa-users"></i>
+            </button>
+            <button class="toolbar-button" id="btn-dark-mode" title="Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="toolbar-button" id="btn-menu" title="Menu">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="editor-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="menu-item active" id="menu-document" title="Document">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="menu-item" id="menu-recent" title="Recent">
+                <i class="fas fa-clock"></i>
+                <span class="menu-badge" id="recent-badge">3</span>
+            </div>
+            <div class="menu-item" id="menu-shared" title="Shared">
+                <i class="fas fa-share-alt"></i>
+            </div>
+            <div class="menu-item" id="menu-starred" title="Starred">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="menu-item" id="menu-trash" title="Trash">
+                <i class="fas fa-trash"></i>
+            </div>
+        </div>
+        
+        <!-- Editor Wrapper -->
+        <div class="editor-wrapper">
+            <!-- Quill Editor -->
+            <div id="editor"></div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="voice-indicator" id="voice-indicator">
+                    <div class="voice-animation">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span>Voice typing on</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-indicator status-online" id="status-indicator"></div>
+                    <span id="status-text">Online</span>
+                </div>
+                <div class="status-item">
+                    <span id="word-count">0 words</span>
+                </div>
+                <div class="status-item">
+                    <span id="char-count">0 characters</span>
+                </div>
+                <div class="status-item">
+                    <span id="reading-time">0 min read</span>
+                </div>
+                <div class="status-item ml-auto">
+                    <span id="last-saved">Auto-saved: Just now</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Collaboration Panel -->
+    <div class="collaboration-panel" id="collaboration-panel">
+        <div class="collaboration-header">
+            <h3 class="collaboration-title">Collaboration</h3>
+            <button class="collaboration-close" id="collaboration-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Your Peer ID:</label>
+            <div class="peer-id-container">
+                <input type="text" class="peer-id-input" id="peer-id" readonly>
+                <button class="peer-id-button" id="copy-peer-id">Copy</button>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Connect to Peer:</label>
+            <div class="peer-id-container">
+                <input type="text" class="peer-id-input" id="connect-peer-id" placeholder="Enter Peer ID">
+                <button class="peer-id-button" id="connect-peer">Connect</button>
+            </div>
+        </div>
+        
+        <div class="peer-list">
+            <h4 class="form-label">Active Peers</h4>
+            <div id="peers-container">
+                <p style="color: #64748b; text-align: center; padding: 20px;">No active peers</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Track Changes Panel -->
+    <div class="track-changes-panel" id="track-changes-panel">
+        <div class="collaboration-header">
+            <h3 class="collaboration-title">Track Changes</h3>
+            <button class="collaboration-close" id="track-changes-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div id="changes-container">
+            <p style="color: #64748b; text-align: center; padding: 20px;">No changes tracked</p>
+        </div>
+    </div>
+    
+    <!-- Templates Modal -->
+    <div class="modal" id="templates-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Document Templates</h3>
+                <button class="modal-close" id="templates-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="template-grid">
+                    <div class="template-card" data-template="letter">
+                        <div class="template-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="template-name">Letter</div>
+                    </div>
+                    <div class="template-card" data-template="resume">
+                        <div class="template-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="template-name">Resume</div>
+                    </div>
+                    <div class="template-card" data-template="report">
+                        <div class="template-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="template-name">Report</div>
+                    </div>
+                    <div class="template-card" data-template="essay">
+                        <div class="template-icon">
+                            <i class="fas fa-pen-fancy"></i>
+                        </div>
+                        <div class="template-name">Essay</div>
+                    </div>
+                    <div class="template-card" data-template="memo">
+                        <div class="template-icon">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <div class="template-name">Memo</div>
+                    </div>
+                    <div class="template-card" data-template="agenda">
+                        <div class="template-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="template-name">Agenda</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Find and Replace Modal -->
+    <div class="modal" id="find-replace-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Find and Replace</h3>
+                <button class="modal-close" id="find-replace-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="find-replace-container">
+                    <div class="find-replace-row">
+                        <div class="find-replace-label">Find:</div>
+                        <input type="text" class="find-replace-input" id="find-input" placeholder="Enter text to find">
+                    </div>
+                    <div class="find-replace-row">
+                        <div class="find-replace-label">Replace:</div>
+                        <input type="text" class="find-replace-input" id="replace-input" placeholder="Enter replacement text">
+                    </div>
+                    <div class="find-replace-options">
+                        <div class="find-replace-option">
+                            <input type="checkbox" id="case-sensitive">
+                            <label for="case-sensitive">Case sensitive</label>
+                        </div>
+                        <div class="find-replace-option">
+                            <input type="checkbox" id="whole-word">
+                            <label for="whole-word">Whole word</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="find-replace-buttons">
+                    <button class="btn btn-secondary" id="btn-find-next">Find Next</button>
+                    <button class="btn btn-secondary" id="btn-replace">Replace</button>
+                    <button class="btn btn-primary" id="btn-replace-all">Replace All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comments Modal -->
+    <div class="modal" id="comments-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Comments</h3>
+                <button class="modal-close" id="comments-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Add Comment:</label>
+                    <textarea class="form-control" id="comment-input" rows="3" placeholder="Enter your comment"></textarea>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" id="btn-add-comment">Add Comment</button>
+                </div>
+                <div class="form-group">
+                    <h4 class="form-label">Existing Comments:</h4>
+                    <div id="comments-container">
+                        <p style="color: #64748b; text-align: center; padding: 20px;">No comments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Table Editor Modal -->
+    <div class="modal" id="table-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Insert Table</h3>
+                <button class="modal-close" id="table-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-editor">
+                    <div class="table-size-selector" id="table-size-selector">
+                        <!-- Table cells will be generated by JavaScript -->
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Table Size: <span id="table-size">1x1</span></label>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="btn-insert-table">Insert Table</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Document Statistics Modal -->
+    <div class="modal" id="stats-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Document Statistics</h3>
+                <button class="modal-close" id="stats-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-words">0</div>
+                        <div class="stat-label">Words</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-characters">0</div>
+                        <div class="stat-label">Characters</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-paragraphs">0</div>
+                        <div class="stat-label">Paragraphs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-reading-time">0</div>
+                        <div class="stat-label">Reading Time (min)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-sentences">0</div>
+                        <div class="stat-label">Sentences</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-avg-words-per-sentence">0</div>
+                        <div class="stat-label">Avg Words/Sentence</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toolbar Customizer Modal -->
+    <div class="modal" id="toolbar-customizer-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Customize Toolbar</h3>
+                <button class="modal-close" id="toolbar-customizer-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="toolbar-customizer">
+                    <div class="toolbar-sections">
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">File</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-file" title="File">
+                                    <i class="fas fa-file"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-templates" title="Templates">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">Edit</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-edit" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-find-replace" title="Find and Replace">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-comments" title="Comments">
+                                    <i class="fas fa-comment"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-track-changes" title="Track Changes">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">Insert</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-insert" title="Insert">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-table" title="Insert Table">
+                                    <i class="fas fa-table"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">Format</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-format" title="Format">
+                                    <i class="fas fa-font"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">Tools</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-tools" title="Tools">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-word-prediction" title="Word Prediction">
+                                    <i class="fas fa-spell-check"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-stats" title="Document Statistics">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">Collaboration</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-voice" title="Voice Typing">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-collaborate" title="Collaborate">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">View</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-view" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-dark-mode" title="Dark Mode">
+                                    <i class="fas fa-moon"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="toolbar-section-custom">
+                            <div class="section-title">Help</div>
+                            <div class="toolbar-items">
+                                <div class="toolbar-item enabled" data-button="btn-help" title="Help">
+                                    <i class="fas fa-question-circle"></i>
+                                </div>
+                                <div class="toolbar-item enabled" data-button="btn-menu" title="Menu">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" id="btn-save-toolbar-settings">Save Settings</button>
+                        <button class="btn btn-secondary" id="btn-reset-toolbar">Reset to Default</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- File Menu Modal -->
+    <div class="modal" id="file-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">File</h3>
+                <button class="modal-close" id="file-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-new-document">New Document</button>
+                    <button class="btn btn-secondary" id="btn-open-file">Open File</button>
+                    <input type="file" class="file-input" id="file-input" accept=".docx,.pdf,.epub,.rtf,.md,.html,.txt">
+                </div>
+                
+                <div class="form-group">
+                    <h4 class="form-label">Export As</h4>
+                    <div class="export-options">
+                        <div class="export-option" id="export-docx">
+                            <i class="fas fa-file-word export-icon"></i>
+                            <span class="export-name">DOCX</span>
+                        </div>
+                        <div class="export-option" id="export-pdf">
+                            <i class="fas fa-file-pdf export-icon"></i>
+                            <span class="export-name">PDF</span>
+                        </div>
+                        <div class="export-option" id="export-epub">
+                            <i class="fas fa-book export-icon"></i>
+                            <span class="export-name">EPUB</span>
+                        </div>
+                        <div class="export-option" id="export-rtf">
+                            <i class="fas fa-file-alt export-icon"></i>
+                            <span class="export-name">RTF</span>
+                        </div>
+                        <div class="export-option" id="export-md">
+                            <i class="fab fa-markdown export-icon"></i>
+                            <span class="export-name">Markdown</span>
+                        </div>
+                        <div class="export-option" id="export-html">
+                            <i class="fas fa-code export-icon"></i>
+                            <span class="export-name">HTML</span>
+                        </div>
+                        <div class="export-option" id="export-txt">
+                            <i class="fas fa-file-text export-icon"></i>
+                            <span class="export-name">Plain Text</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Menu Modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Edit</h3>
+                <button class="modal-close" id="edit-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-undo">Undo</button>
+                    <button class="btn btn-secondary" id="btn-redo">Redo</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-cut">Cut</button>
+                    <button class="btn btn-secondary" id="btn-copy">Copy</button>
+                    <button class="btn btn-secondary" id="btn-paste">Paste</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-select-all">Select All</button>
+                    <button class="btn btn-secondary" id="btn-find-replace-edit">Find and Replace</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View Menu Modal -->
+    <div class="modal" id="view-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">View</h3>
+                <button class="modal-close" id="view-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-print">Print</button>
+                    <button class="btn btn-secondary" id="btn-fullscreen">Fullscreen</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-zoom-in">Zoom In</button>
+                    <button class="btn btn-secondary" id="btn-zoom-out">Zoom Out</button>
+                    <button class="btn btn-secondary" id="btn-zoom-reset">Reset Zoom</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-customize-toolbar">Customize Toolbar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Insert Menu Modal -->
+    <div class="modal" id="insert-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Insert</h3>
+                <button class="modal-close" id="insert-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-insert-image">Image</button>
+                    <button class="btn btn-secondary" id="btn-insert-link">Link</button>
+                    <button class="btn btn-secondary" id="btn-insert-table-insert">Table</button>
+                    <button class="btn btn-secondary" id="btn-insert-hr">Horizontal Line</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-insert-header">Header</button>
+                    <button class="btn btn-secondary" id="btn-insert-footer">Footer</button>
+                    <button class="btn btn-secondary" id="btn-insert-page-break">Page Break</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Format Menu Modal -->
+    <div class="modal" id="format-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Format</h3>
+                <button class="modal-close" id="format-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-format-text">Text</button>
+                    <button class="btn btn-secondary" id="btn-format-paragraph">Paragraph</button>
+                    <button class="btn btn-secondary" id="btn-format-styles">Styles</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-format-clear">Clear Formatting</button>
+                    <button class="btn btn-secondary" id="btn-format-spacing">Line Spacing</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tools Menu Modal -->
+    <div class="modal" id="tools-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tools</h3>
+                <button class="modal-close" id="tools-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-word-count">Word Count</button>
+                    <button class="btn btn-secondary" id="btn-spell-check">Spell Check</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-translate">Translate</button>
+                    <button class="btn btn-secondary" id="btn-dictionary">Dictionary</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-document-stats">Document Statistics</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Menu Modal -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Help</h3>
+                <button class="modal-close" id="help-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-help-docs">Documentation</button>
+                    <button class="btn btn-secondary" id="btn-help-shortcuts">Keyboard Shortcuts</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-help-feedback">Send Feedback</button>
+                    <button class="btn btn-secondary" id="btn-help-about">About JK Write</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menu Modal -->
+    <div class="modal" id="menu-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Menu</h3>
+                <button class="modal-close" id="menu-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-settings">Settings</button>
+                    <button class="btn btn-secondary" id="btn-offline-mode">Offline Mode</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-save-to-device">Save to Device</button>
+                    <button class="btn btn-secondary" id="btn-load-from-device">Load from Device</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-secondary" id="btn-auto-recovery">Auto Recovery</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- About Modal -->
+    <div class="modal about-modal" id="about-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">About JK Write</h3>
+                <button class="modal-close" id="about-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="about-logo">JK</div>
+                <h2 class="about-title">JK Write</h2>
+                <p class="about-version">Version 2.0.0</p>
+                <p class="about-description">
+                    A professional, fully offline word processor designed for privacy and productivity. 
+                    Create, edit, and collaborate on documents without sacrificing your data security.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recovery Panel -->
+    <div class="recovery-panel" id="recovery-panel">
+        <div class="recovery-header">
+            <div class="recovery-title">Document Recovery</div>
+            <button class="recovery-close" id="recovery-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="recovery-message">
+            We found an unsaved document. Would you like to recover it?
+        </div>
+        <div class="recovery-actions">
+            <button class="btn btn-primary" id="btn-recover-document">Recover</button>
+            <button class="btn btn-secondary" id="btn-discard-recovery">Discard</button>
+        </div>
+    </div>
+    
+    <!-- Word Prediction Popup -->
+    <div class="word-prediction" id="word-prediction"></div>
+    
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+    
+    <script>
+        // Initialize Quill editor
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                ],
+                history: {
+                    delay: 2000,
+                    maxStack: 500,
+                    userOnly: true
+                }
+            }
+        });
+        
+        // Initialize variables
+        let isDarkMode = false;
+        let isVoiceTyping = false;
+        let recognition = null;
+        let peer = null;
+        let connections = [];
+        let docTitle = 'Untitled Document';
+        let autoSaveTimer = null;
+        let lastSavedTime = new Date();
+        let zoomLevel = 1;
+        let comments = [];
+        let changes = [];
+        let isTrackChangesEnabled = false;
+        let isWordPredictionEnabled = false;
+        let selectedTableSize = { rows: 1, cols: 1 };
+        let toolbarSettings = {};
+        
+        // Common words for word prediction
+        const commonWords = [
+            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'I',
+            'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+            'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+            'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what',
+            'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me',
+            'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take',
+            'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other',
+            'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also',
+            'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way',
+            'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us'
+        ];
+        
+        // Document templates
+        const documentTemplates = {
+            letter: {
+                title: 'Letter',
+                content: `
+                    <h2>Your Name</h2>
+                    <p>Your Address</p>
+                    <p>City, State, Zip Code</p>
+                    <p>Email Address</p>
+                    <p>Phone Number</p>
+                    <p>Date</p>
+                    <br>
+                    <h2>Recipient Name</h2>
+                    <p>Recipient Title</p>
+                    <p>Company Name</p>
+                    <p>Company Address</p>
+                    <p>City, State, Zip Code</p>
+                    <br>
+                    <p>Dear [Recipient Name],</p>
+                    <br>
+                    <p>[Body of the letter]</p>
+                    <br>
+                    <p>Sincerely,</p>
+                    <p>[Your Name]</p>
+                `
+            },
+            resume: {
+                title: 'Resume',
+                content: `
+                    <h1>Your Name</h1>
+                    <p>Email Address | Phone Number | LinkedIn Profile</p>
+                    <br>
+                    <h2>Summary</h2>
+                    <p>[Professional summary highlighting your skills and experience]</p>
+                    <br>
+                    <h2>Experience</h2>
+                    <h3>Job Title</h3>
+                    <p><em>Company Name | City, State | Month Year – Month Year</em></p>
+                    <ul>
+                        <li>Responsibility or achievement 1</li>
+                        <li>Responsibility or achievement 2</li>
+                        <li>Responsibility or achievement 3</li>
+                    </ul>
+                    <br>
+                    <h2>Education</h2>
+                    <h3>Degree Name</h3>
+                    <p><em>University Name | City, State | Year</em></p>
+                    <br>
+                    <h2>Skills</h2>
+                    <ul>
+                        <li>Skill 1</li>
+                        <li>Skill 2</li>
+                        <li>Skill 3</li>
+                    </ul>
+                `
+            },
+            report: {
+                title: 'Report',
+                content: `
+                    <h1>Report Title</h1>
+                    <p><em>Prepared by: [Your Name]</em></p>
+                    <p><em>Date: [Current Date]</em></p>
+                    <br>
+                    <h2>Executive Summary</h2>
+                    <p>[Brief overview of the report's findings and recommendations]</p>
+                    <br>
+                    <h2>Introduction</h2>
+                    <p>[Background information and purpose of the report]</p>
+                    <br>
+                    <h2>Methodology</h2>
+                    <p>[How the information was gathered and analyzed]</p>
+                    <br>
+                    <h2>Findings</h2>
+                    <p>[Detailed presentation of the research results]</p>
+                    <br>
+                    <h2>Discussion</h2>
+                    <p>[Analysis and interpretation of the findings]</p>
+                    <br>
+                    <h2>Conclusions</h2>
+                    <p>[Summary of key points and implications]</p>
+                    <br>
+                    <h2>Recommendations</h2>
+                    <p>[Suggested actions based on the findings]</p>
+                    <br>
+                    <h2>References</h2>
+                    <p>[List of sources cited in the report]</p>
+                `
+            },
+            essay: {
+                title: 'Essay',
+                content: `
+                    <h1>Essay Title</h1>
+                    <br>
+                    <h2>Introduction</h2>
+                    <p>[Hook to grab the reader's attention]</p>
+                    <p>[Background information on the topic]</p>
+                    <p>[Thesis statement presenting the main argument]</p>
+                    <br>
+                    <h2>Body Paragraph 1</h2>
+                    <p>[Topic sentence introducing the first main point]</p>
+                    <p>[Supporting evidence and examples]</p>
+                    <p>[Analysis and explanation]</p>
+                    <br>
+                    <h2>Body Paragraph 2</h2>
+                    <p>[Topic sentence introducing the second main point]</p>
+                    <p>[Supporting evidence and examples]</p>
+                    <p>[Analysis and explanation]</p>
+                    <br>
+                    <h2>Body Paragraph 3</h2>
+                    <p>[Topic sentence introducing the third main point]</p>
+                    <p>[Supporting evidence and examples]</p>
+                    <p>[Analysis and explanation]</p>
+                    <br>
+                    <h2>Conclusion</h2>
+                    <p>[Restatement of the thesis in different words]</p>
+                    <p>[Summary of main points]</p>
+                    <p>[Final thought or call to action]</p>
+                `
+            },
+            memo: {
+                title: 'Memo',
+                content: `
+                    <h1>MEMORANDUM</h1>
+                    <p><strong>To:</strong> [Recipient Name]</p>
+                    <p><strong>From:</strong> [Your Name]</p>
+                    <p><strong>Date:</strong> [Current Date]</p>
+                    <p><strong>Subject:</strong> [Memo Subject]</p>
+                    <br>
+                    <p>[Body of the memo]</p>
+                    <br>
+                    <p>Please let me know if you have any questions.</p>
+                    <p>Best regards,</p>
+                    <p>[Your Name]</p>
+                `
+            },
+            agenda: {
+                title: 'Agenda',
+                content: `
+                    <h1>Meeting Agenda</h1>
+                    <p><strong>Date:</strong> [Meeting Date]</p>
+                    <p><strong>Time:</strong> [Meeting Time]</p>
+                    <p><strong>Location:</strong> [Meeting Location]</p>
+                    <br>
+                    <h2>Attendees</h2>
+                    <ul>
+                        <li>[Attendee 1]</li>
+                        <li>[Attendee 2]</li>
+                        <li>[Attendee 3]</li>
+                    </ul>
+                    <br>
+                    <h2>Agenda Items</h2>
+                    <ol>
+                        <li>
+                            <strong>Item 1: [Topic]</strong>
+                            <p>[Description or discussion points]</p>
+                            <p><em>Presenter: [Name]</em></p>
+                        </li>
+                        <li>
+                            <strong>Item 2: [Topic]</strong>
+                            <p>[Description or discussion points]</p>
+                            <p><em>Presenter: [Name]</em></p>
+                        </li>
+                        <li>
+                            <strong>Item 3: [Topic]</strong>
+                            <p>[Description or discussion points]</p>
+                            <p><em>Presenter: [Name]</em></p>
+                        </li>
+                    </ol>
+                    <br>
+                    <h2>Action Items</h2>
+                    <ul>
+                        <li>[Action item 1]</li>
+                        <li>[Action item 2]</li>
+                        <li>[Action item 3]</li>
+                    </ul>
+                `
+            }
+        };
+        
+        // Initialize Web Speech API for voice typing
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = function(event) {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                }
+                
+                if (transcript) {
+                    const selection = quill.getSelection();
+                    if (selection) {
+                        quill.insertText(selection.index, transcript);
+                        quill.setSelection(selection.index + transcript.length);
+                    } else {
+                        quill.insertText(quill.getLength() - 1, transcript);
+                        quill.setSelection(quill.getLength() - 1);
+                    }
+                    updateWordCount();
+                    autoSave();
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+                stopVoiceTyping();
+                showNotification('Voice typing error: ' + event.error, 'error');
+            };
+        }
+        
+        // Initialize PeerJS for WebRTC collaboration
+        function initializePeer() {
+            peer = new Peer({
+                debug: 2
+            });
+            
+            peer.on('open', function(id) {
+                document.getElementById('peer-id').value = id;
+                showNotification('Peer connection established', 'success');
+            });
+            
+            peer.on('connection', function(conn) {
+                connections.push(conn);
+                updatePeersList();
+                
+                conn.on('data', function(data) {
+                    if (data.type === 'content') {
+                        // Apply remote changes to the editor
+                        quill.setContents(data.content);
+                        docTitle = data.title;
+                        document.getElementById('document-title').value = docTitle;
+                        updateWordCount();
+                    }
+                });
+                
+                conn.on('close', function() {
+                    connections = connections.filter(c => c !== conn);
+                    updatePeersList();
+                });
+            });
+            
+            peer.on('error', function(err) {
+                console.error('Peer error', err);
+                showNotification('Peer connection error: ' + err.message, 'error');
+            });
+        }
+        
+        // Update the list of connected peers
+        function updatePeersList() {
+            const peersContainer = document.getElementById('peers-container');
+            
+            if (connections.length === 0) {
+                peersContainer.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;">No active peers</p>';
+            } else {
+                peersContainer.innerHTML = '';
+                connections.forEach((conn, index) => {
+                    const peerItem = document.createElement('div');
+                    peerItem.className = 'peer-item';
+                    peerItem.innerHTML = `
+                        <div class="peer-avatar">P${index + 1}</div>
+                        <div class="peer-info">
+                            <div class="peer-name">Peer ${index + 1}</div>
+                            <div class="peer-id-text">${conn.peer}</div>
+                        </div>
+                        <div class="peer-status"></div>
+                    `;
+                    peersContainer.appendChild(peerItem);
+                });
+            }
+        }
+        
+        // Connect to a peer
+        function connectToPeer(peerId) {
+            if (!peer) {
+                initializePeer();
+            }
+            
+            const conn = peer.connect(peerId);
+            
+            conn.on('open', function() {
+                connections.push(conn);
+                updatePeersList();
+                
+                // Send current document to the new peer
+                conn.send({
+                    type: 'content',
+                    title: docTitle,
+                    content: quill.getContents()
+                });
+                
+                showNotification('Connected to peer', 'success');
+            });
+            
+            conn.on('data', function(data) {
+                if (data.type === 'content') {
+                    // Apply remote changes to the editor
+                    quill.setContents(data.content);
+                    docTitle = data.title;
+                    document.getElementById('document-title').value = docTitle;
+                    updateWordCount();
+                }
+            });
+            
+            conn.on('close', function() {
+                connections = connections.filter(c => c !== conn);
+                updatePeersList();
+            });
+            
+            conn.on('error', function(err) {
+                console.error('Connection error', err);
+                showNotification('Connection error: ' + err.message, 'error');
+            });
+        }
+        
+        // Send document updates to all connected peers
+        function sendDocumentUpdate() {
+            if (connections.length > 0) {
+                const update = {
+                    type: 'content',
+                    title: docTitle,
+                    content: quill.getContents()
+                };
+                
+                connections.forEach(conn => {
+                    if (conn.open) {
+                        conn.send(update);
+                    }
+                });
+            }
+        }
+        
+        // Toggle dark mode
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark-mode');
+            
+            const darkModeButton = document.getElementById('btn-dark-mode');
+            if (isDarkMode) {
+                darkModeButton.innerHTML = '<i class="fas fa-sun"></i>';
+                darkModeButton.title = 'Light Mode';
+            } else {
+                darkModeButton.innerHTML = '<i class="fas fa-moon"></i>';
+                darkModeButton.title = 'Dark Mode';
+            }
+            
+            // Save preference to localStorage
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+        
+        // Start voice typing
+        function startVoiceTyping() {
+            if (!recognition) {
+                showNotification('Voice typing is not supported in your browser', 'error');
+                return;
+            }
+            
+            isVoiceTyping = true;
+            recognition.start();
+            document.getElementById('voice-indicator').classList.add('active');
+            document.getElementById('btn-voice').classList.add('active');
+            showNotification('Voice typing started', 'info');
+        }
+        
+        // Stop voice typing
+        function stopVoiceTyping() {
+            if (recognition && isVoiceTyping) {
+                recognition.stop();
+                isVoiceTyping = false;
+                document.getElementById('voice-indicator').classList.remove('active');
+                document.getElementById('btn-voice').classList.remove('active');
+                showNotification('Voice typing stopped', 'info');
+            }
+        }
+        
+        // Toggle voice typing
+        function toggleVoiceTyping() {
+            if (isVoiceTyping) {
+                stopVoiceTyping();
+            } else {
+                startVoiceTyping();
+            }
+        }
+        
+        // Update word and character count
+        function updateWordCount() {
+            const text = quill.getText();
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+            const chars = text.length;
+            const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0).length;
+            const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+            const avgWordsPerSentence = sentences > 0 ? Math.round(words / sentences) : 0;
+            const readingTime = Math.ceil(words / 200); // Average reading speed: 200 words per minute
+            
+            document.getElementById('word-count').textContent = `${words} words`;
+            document.getElementById('char-count').textContent = `${chars} characters`;
+            document.getElementById('reading-time').textContent = `${readingTime} min read`;
+            
+            // Update statistics modal if it's open
+            document.getElementById('stat-words').textContent = words;
+            document.getElementById('stat-characters').textContent = chars;
+            document.getElementById('stat-paragraphs').textContent = paragraphs;
+            document.getElementById('stat-sentences').textContent = sentences;
+            document.getElementById('stat-avg-words-per-sentence').textContent = avgWordsPerSentence;
+            document.getElementById('stat-reading-time').textContent = readingTime;
+        }
+        
+        // Auto-save document
+        function autoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveToLocalStorage();
+                lastSavedTime = new Date();
+                updateLastSavedTime();
+            }, 2000);
+        }
+        
+        // Update last saved time
+        function updateLastSavedTime() {
+            const now = new Date();
+            const diff = Math.floor((now - lastSavedTime) / 1000); // seconds
+            
+            let timeText;
+            if (diff < 60) {
+                timeText = 'Just now';
+            } else if (diff < 3600) {
+                const minutes = Math.floor(diff / 60);
+                timeText = `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            } else {
+                const hours = Math.floor(diff / 3600);
+                timeText = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+            }
+            
+            document.getElementById('last-saved').textContent = `Auto-saved: ${timeText}`;
+        }
+        
+        // Save document to localStorage
+        function saveToLocalStorage() {
+            const documentData = {
+                title: docTitle,
+                content: quill.getContents(),
+                html: quill.root.innerHTML,
+                comments: comments,
+                changes: changes,
+                lastSaved: new Date().toISOString()
+            };
+            
+            localStorage.setItem('jkwrite-document', JSON.stringify(documentData));
+            
+            // Also save to auto-recovery storage
+            localStorage.setItem('jkwrite-autorecovery', JSON.stringify(documentData));
+        }
+        
+        // Load document from localStorage
+        function loadFromLocalStorage() {
+            const savedDocument = localStorage.getItem('jkwrite-document');
+            
+            if (savedDocument) {
+                try {
+                    const documentData = JSON.parse(savedDocument);
+                    docTitle = documentData.title || 'Untitled Document';
+                    document.getElementById('document-title').value = docTitle;
+                    
+                    if (documentData.content) {
+                        quill.setContents(documentData.content);
+                    } else if (documentData.html) {
+                        quill.root.innerHTML = documentData.html;
+                    }
+                    
+                    if (documentData.comments) {
+                        comments = documentData.comments;
+                        updateCommentsList();
+                    }
+                    
+                    if (documentData.changes) {
+                        changes = documentData.changes;
+                        updateChangesList();
+                    }
+                    
+                    lastSavedTime = new Date(documentData.lastSaved);
+                    updateLastSavedTime();
+                    updateWordCount();
+                    
+                    showNotification('Document loaded from local storage', 'success');
+                } catch (error) {
+                    console.error('Error loading document from local storage', error);
+                    showNotification('Error loading document', 'error');
+                }
+            }
+        }
+        
+        // Check for auto-recovery
+        function checkAutoRecovery() {
+            const autoRecovery = localStorage.getItem('jkwrite-autorecovery');
+            
+            if (autoRecovery) {
+                try {
+                    const recoveryData = JSON.parse(autoRecovery);
+                    const recoveryTime = new Date(recoveryData.lastSaved);
+                    const now = new Date();
+                    const diffHours = (now - recoveryTime) / (1000 * 60 * 60);
+                    
+                    // Only show recovery panel if the document was saved less than 24 hours ago
+                    if (diffHours < 24) {
+                        document.getElementById('recovery-panel').style.display = 'block';
+                    }
+                } catch (error) {
+                    console.error('Error checking auto-recovery', error);
+                }
+            }
+        }
+        
+        // Recover document
+        function recoverDocument() {
+            const autoRecovery = localStorage.getItem('jkwrite-autorecovery');
+            
+            if (autoRecovery) {
+                try {
+                    const documentData = JSON.parse(autoRecovery);
+                    docTitle = documentData.title || 'Untitled Document';
+                    document.getElementById('document-title').value = docTitle;
+                    
+                    if (documentData.content) {
+                        quill.setContents(documentData.content);
+                    } else if (documentData.html) {
+                        quill.root.innerHTML = documentData.html;
+                    }
+                    
+                    if (documentData.comments) {
+                        comments = documentData.comments;
+                        updateCommentsList();
+                    }
+                    
+                    if (documentData.changes) {
+                        changes = documentData.changes;
+                        updateChangesList();
+                    }
+                    
+                    lastSavedTime = new Date(documentData.lastSaved);
+                    updateLastSavedTime();
+                    updateWordCount();
+                    
+                    // Clear auto-recovery storage
+                    localStorage.removeItem('jkwrite-autorecovery');
+                    
+                    document.getElementById('recovery-panel').style.display = 'none';
+                    showNotification('Document recovered successfully', 'success');
+                } catch (error) {
+                    console.error('Error recovering document', error);
+                    showNotification('Error recovering document', 'error');
+                }
+            }
+        }
+        
+        // Discard recovery
+        function discardRecovery() {
+            localStorage.removeItem('jkwrite-autorecovery');
+            document.getElementById('recovery-panel').style.display = 'none';
+            showNotification('Recovery discarded', 'info');
+        }
+        
+        // Save document to device
+        function saveToDevice() {
+            const documentData = {
+                title: docTitle,
+                content: quill.getContents(),
+                html: quill.root.innerHTML,
+                comments: comments,
+                changes: changes,
+                lastSaved: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(documentData)], { type: 'application/json' });
+            saveAs(blob, `${docTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jkwrite`);
+            
+            showNotification('Document saved to device', 'success');
+        }
+        
+        // Load document from device
+        function loadFromDevice() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.jkwrite';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const documentData = JSON.parse(event.target.result);
+                        docTitle = documentData.title || 'Untitled Document';
+                        document.getElementById('document-title').value = docTitle;
+                        
+                        if (documentData.content) {
+                            quill.setContents(documentData.content);
+                        } else if (documentData.html) {
+                            quill.root.innerHTML = documentData.html;
+                        }
+                        
+                        if (documentData.comments) {
+                            comments = documentData.comments;
+                            updateCommentsList();
+                        }
+                        
+                        if (documentData.changes) {
+                            changes = documentData.changes;
+                            updateChangesList();
+                        }
+                        
+                        lastSavedTime = new Date(documentData.lastSaved || Date.now());
+                        updateLastSavedTime();
+                        updateWordCount();
+                        
+                        showNotification('Document loaded from device', 'success');
+                    } catch (error) {
+                        console.error('Error loading document from device', error);
+                        showNotification('Error loading document', 'error');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+        
+        // Export document as different formats
+        function exportDocument(format) {
+            const title = docTitle || 'Untitled Document';
+            const content = quill.getText();
+            const html = quill.root.innerHTML;
+            
+            switch (format) {
+                case 'txt':
+                    const txtBlob = new Blob([content], { type: 'text/plain' });
+                    saveAs(txtBlob, `${title}.txt`);
+                    showNotification('Document exported as Plain Text', 'success');
+                    break;
+                    
+                case 'html':
+                    const htmlBlob = new Blob([html], { type: 'text/html' });
+                    saveAs(htmlBlob, `${title}.html`);
+                    showNotification('Document exported as HTML', 'success');
+                    break;
+                    
+                case 'md':
+                    const turndownService = new TurndownService();
+                    const markdown = turndownService.turndown(html);
+                    const mdBlob = new Blob([markdown], { type: 'text/markdown' });
+                    saveAs(mdBlob, `${title}.md`);
+                    showNotification('Document exported as Markdown', 'success');
+                    break;
+                    
+                case 'pdf':
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    const splitText = doc.splitTextToSize(content, 180);
+                    doc.text(splitText, 10, 10);
+                    doc.save(`${title}.pdf`);
+                    showNotification('Document exported as PDF', 'success');
+                    break;
+                    
+                case 'docx':
+                    // This is a simplified implementation
+                    // In a real app, you would use a library like docx
+                    const docxBlob = new Blob([html], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                    saveAs(docxBlob, `${title}.docx`);
+                    showNotification('Document exported as DOCX', 'success');
+                    break;
+                    
+                case 'epub':
+                    // This is a simplified implementation
+                    // In a real app, you would use a library like epub-gen
+                    const epubBlob = new Blob([html], { type: 'application/epub+zip' });
+                    saveAs(epubBlob, `${title}.epub`);
+                    showNotification('Document exported as EPUB', 'success');
+                    break;
+                    
+                case 'rtf':
+                    // This is a simplified implementation
+                    // In a real app, you would use a library like rtf.js
+                    const rtfBlob = new Blob([html], { type: 'application/rtf' });
+                    saveAs(rtfBlob, `${title}.rtf`);
+                    showNotification('Document exported as RTF', 'success');
+                    break;
+                    
+                default:
+                    showNotification('Export format not supported', 'error');
+            }
+        }
+        
+        // Import document from file
+        function importDocument(file) {
+            const reader = new FileReader();
+            const fileName = file.name;
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+            
+            reader.onload = function(event) {
+                try {
+                    switch (fileExtension) {
+                        case 'txt':
+                            quill.setText(event.target.result);
+                            docTitle = fileName.replace('.txt', '');
+                            document.getElementById('document-title').value = docTitle;
+                            showNotification('Plain Text document imported', 'success');
+                            break;
+                            
+                        case 'html':
+                            quill.root.innerHTML = event.target.result;
+                            docTitle = fileName.replace('.html', '');
+                            document.getElementById('document-title').value = docTitle;
+                            showNotification('HTML document imported', 'success');
+                            break;
+                            
+                        case 'md':
+                            const converter = new showdown.Converter();
+                            const html = converter.makeHtml(event.target.result);
+                            quill.root.innerHTML = html;
+                            docTitle = fileName.replace('.md', '');
+                            document.getElementById('document-title').value = docTitle;
+                            showNotification('Markdown document imported', 'success');
+                            break;
+                            
+                        case 'docx':
+                            mammoth.convertToHtml({ arrayBuffer: event.target.result })
+                                .then(result => {
+                                    quill.root.innerHTML = result.value;
+                                    docTitle = fileName.replace('.docx', '');
+                                    document.getElementById('document-title').value = docTitle;
+                                    showNotification('DOCX document imported', 'success');
+                                })
+                                .catch(error => {
+                                    console.error('Error importing DOCX', error);
+                                    showNotification('Error importing DOCX document', 'error');
+                                });
+                            break;
+                            
+                        case 'rtf':
+                            // This is a simplified implementation
+                            // In a real app, you would use a library like rtf.js
+                            quill.root.innerHTML = event.target.result;
+                            docTitle = fileName.replace('.rtf', '');
+                            document.getElementById('document-title').value = docTitle;
+                            showNotification('RTF document imported', 'success');
+                            break;
+                            
+                        default:
+                            showNotification('File format not supported', 'error');
+                    }
+                    
+                    updateWordCount();
+                    autoSave();
+                } catch (error) {
+                    console.error('Error importing document', error);
+                    showNotification('Error importing document', 'error');
+                }
+            };
+            
+            if (fileExtension === 'docx') {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+        }
+        
+        // Load document template
+        function loadTemplate(templateName) {
+            const template = documentTemplates[templateName];
+            if (template) {
+                docTitle = template.title;
+                document.getElementById('document-title').value = docTitle;
+                quill.root.innerHTML = template.content;
+                updateWordCount();
+                autoSave();
+                showNotification(`${template.title} template loaded`, 'success');
+            }
+        }
+        
+        // Find and replace functionality
+        function findAndReplace() {
+            const findText = document.getElementById('find-input').value;
+            const replaceText = document.getElementById('replace-input').value;
+            const caseSensitive = document.getElementById('case-sensitive').checked;
+            const wholeWord = document.getElementById('whole-word').checked;
+            
+            if (!findText) {
+                showNotification('Please enter text to find', 'error');
+                return;
+            }
+            
+            const text = quill.getText();
+            let flags = 'g';
+            if (!caseSensitive) flags += 'i';
+            
+            let regex;
+            if (wholeWord) {
+                regex = new RegExp(`\\b${findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags);
+            } else {
+                regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+            }
+            
+            const matches = text.match(regex);
+            
+            if (matches) {
+                const index = text.search(regex);
+                if (index !== -1) {
+                    quill.setSelection(index, findText.length);
+                    showNotification(`Found ${matches.length} occurrence${matches.length !== 1 ? 's' : ''}`, 'info');
+                }
+            } else {
+                showNotification('No matches found', 'info');
+            }
+        }
+        
+        function replaceNext() {
+            const findText = document.getElementById('find-input').value;
+            const replaceText = document.getElementById('replace-input').value;
+            const caseSensitive = document.getElementById('case-sensitive').checked;
+            const wholeWord = document.getElementById('whole-word').checked;
+            
+            if (!findText) {
+                showNotification('Please enter text to find', 'error');
+                return;
+            }
+            
+            const selection = quill.getSelection();
+            if (!selection) {
+                findAndReplace();
+                return;
+            }
+            
+            const text = quill.getText();
+            let flags = 'g';
+            if (!caseSensitive) flags += 'i';
+            
+            let regex;
+            if (wholeWord) {
+                regex = new RegExp(`\\b${findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags);
+            } else {
+                regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+            }
+            
+            const selectedText = text.substring(selection.index, selection.index + selection.length);
+            if (regex.test(selectedText)) {
+                quill.deleteText(selection.index, selection.length);
+                quill.insertText(selection.index, replaceText);
+                quill.setSelection(selection.index, replaceText.length);
+                
+                // Find next occurrence
+                const remainingText = text.substring(selection.index + replaceText.length);
+                const nextMatch = remainingText.match(regex);
+                
+                if (nextMatch) {
+                    const nextIndex = text.indexOf(nextMatch[0], selection.index + replaceText.length);
+                    quill.setSelection(nextIndex, nextMatch[0].length);
+                }
+                
+                showNotification('Replaced occurrence', 'success');
+                autoSave();
+            } else {
+                findAndReplace();
+            }
+        }
+        
+        function replaceAll() {
+            const findText = document.getElementById('find-input').value;
+            const replaceText = document.getElementById('replace-input').value;
+            const caseSensitive = document.getElementById('case-sensitive').checked;
+            const wholeWord = document.getElementById('whole-word').checked;
+            
+            if (!findText) {
+                showNotification('Please enter text to find', 'error');
+                return;
+            }
+            
+            const text = quill.getText();
+            let flags = 'g';
+            if (!caseSensitive) flags += 'i';
+            
+            let regex;
+            if (wholeWord) {
+                regex = new RegExp(`\\b${findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, flags);
+            } else {
+                regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+            }
+            
+            const matches = text.match(regex);
+            
+            if (matches) {
+                const newText = text.replace(regex, replaceText);
+                quill.setText(newText);
+                showNotification(`Replaced ${matches.length} occurrence${matches.length !== 1 ? 's' : ''}`, 'success');
+                autoSave();
+            } else {
+                showNotification('No matches found', 'info');
+            }
+        }
+        
+        // Comments functionality
+        function addComment() {
+            const commentText = document.getElementById('comment-input').value.trim();
+            
+            if (!commentText) {
+                showNotification('Please enter a comment', 'error');
+                return;
+            }
+            
+            const selection = quill.getSelection();
+            if (!selection) {
+                showNotification('Please select text to comment on', 'error');
+                return;
+            }
+            
+            const comment = {
+                id: Date.now(),
+                text: commentText,
+                selection: {
+                    index: selection.index,
+                    length: selection.length
+                },
+                timestamp: new Date().toISOString(),
+                author: 'You'
+            };
+            
+            comments.push(comment);
+            updateCommentsList();
+            document.getElementById('comment-input').value = '';
+            showNotification('Comment added', 'success');
+            autoSave();
+        }
+        
+        function updateCommentsList() {
+            const commentsContainer = document.getElementById('comments-container');
+            
+            if (comments.length === 0) {
+                commentsContainer.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;">No comments</p>';
+            } else {
+                commentsContainer.innerHTML = '';
+                comments.forEach(comment => {
+                    const commentElement = document.createElement('div');
+                    commentElement.className = 'comment';
+                    commentElement.innerHTML = `
+                        <div class="comment-header">
+                            <span class="comment-author">${comment.author}</span>
+                            <span>
+                                <span class="comment-time">${new Date(comment.timestamp).toLocaleString()}</span>
+                                <span class="comment-delete" data-id="${comment.id}"><i class="fas fa-trash"></i></span>
+                            </span>
+                        </div>
+                        <div class="comment-body">${comment.text}</div>
+                    `;
+                    commentsContainer.appendChild(commentElement);
+                });
+                
+                // Add event listeners to delete buttons
+                document.querySelectorAll('.comment-delete').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const commentId = parseInt(this.getAttribute('data-id'));
+                        deleteComment(commentId);
+                    });
+                });
+            }
+            
+            // Update comment badge
+            const commentBadge = document.getElementById('comment-badge');
+            if (comments.length > 0) {
+                commentBadge.textContent = comments.length;
+                commentBadge.style.display = 'block';
+            } else {
+                commentBadge.style.display = 'none';
+            }
+        }
+        
+        function deleteComment(commentId) {
+            comments = comments.filter(comment => comment.id !== commentId);
+            updateCommentsList();
+            showNotification('Comment deleted', 'info');
+            autoSave();
+        }
+        
+        // Track changes functionality
+        function toggleTrackChanges() {
+            isTrackChangesEnabled = !isTrackChangesEnabled;
+            const trackChangesButton = document.getElementById('btn-track-changes');
+            const trackChangesPanel = document.getElementById('track-changes-panel');
+            
+            if (isTrackChangesEnabled) {
+                trackChangesButton.classList.add('active');
+                trackChangesPanel.style.display = 'block';
+                showNotification('Track changes enabled', 'info');
+                
+                // Start tracking changes
+                quill.on('text-change', trackChangesHandler);
+            } else {
+                trackChangesButton.classList.remove('active');
+                trackChangesPanel.style.display = 'none';
+                showNotification('Track changes disabled', 'info');
+                
+                // Stop tracking changes
+                quill.off('text-change', trackChangesHandler);
+            }
+        }
+        
+        function trackChangesHandler(delta, oldDelta, source) {
+            if (source !== 'user') return;
+            
+            delta.ops.forEach(op => {
+                if (op.insert) {
+                    const change = {
+                        id: Date.now(),
+                        type: 'addition',
+                        content: op.insert,
+                        timestamp: new Date().toISOString(),
+                        author: 'You'
+                    };
+                    changes.push(change);
+                } else if (op.delete) {
+                    const change = {
+                        id: Date.now(),
+                        type: 'deletion',
+                        content: oldDelta.ops.find(o => o.retain && o.retain >= op.delete),
+                        timestamp: new Date().toISOString(),
+                        author: 'You'
+                    };
+                    changes.push(change);
+                }
+            });
+            
+            updateChangesList();
+            autoSave();
+        }
+        
+        function updateChangesList() {
+            const changesContainer = document.getElementById('changes-container');
+            
+            if (changes.length === 0) {
+                changesContainer.innerHTML = '<p style="color: #64748b; text-align: center; padding: 20px;">No changes tracked</p>';
+            } else {
+                changesContainer.innerHTML = '';
+                changes.forEach(change => {
+                    const changeElement = document.createElement('div');
+                    changeElement.className = 'change-item';
+                    
+                    let changeTypeClass = '';
+                    let changeTypeText = '';
+                    
+                    switch (change.type) {
+                        case 'addition':
+                            changeTypeClass = 'addition';
+                            changeTypeText = 'Addition';
+                            break;
+                        case 'deletion':
+                            changeTypeClass = 'deletion';
+                            changeTypeText = 'Deletion';
+                            break;
+                        case 'modification':
+                            changeTypeClass = 'modification';
+                            changeTypeText = 'Modification';
+                            break;
+                    }
+                    
+                    changeElement.innerHTML = `
+                        <div class="change-type ${changeTypeClass}">${changeTypeText}</div>
+                        <div class="change-content">${change.content}</div>
+                        <div class="change-meta">${change.author} • ${new Date(change.timestamp).toLocaleString()}</div>
+                        <div class="change-actions">
+                            <span class="change-action accept" data-id="${change.id}">Accept</span>
+                            <span class="change-action reject" data-id="${change.id}">Reject</span>
+                        </div>
+                    `;
+                    changesContainer.appendChild(changeElement);
+                });
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.change-action.accept').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const changeId = parseInt(this.getAttribute('data-id'));
+                        acceptChange(changeId);
+                    });
+                });
+                
+                document.querySelectorAll('.change-action.reject').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const changeId = parseInt(this.getAttribute('data-id'));
+                        rejectChange(changeId);
+                    });
+                });
+            }
+            
+            // Update changes badge
+            const changesBadge = document.getElementById('changes-badge');
+            if (changes.length > 0) {
+                changesBadge.textContent = changes.length;
+                changesBadge.style.display = 'block';
+            } else {
+                changesBadge.style.display = 'none';
+            }
+        }
+        
+        function acceptChange(changeId) {
+            changes = changes.filter(change => change.id !== changeId);
+            updateChangesList();
+            showNotification('Change accepted', 'info');
+            autoSave();
+        }
+        
+        function rejectChange(changeId) {
+            changes = changes.filter(change => change.id !== changeId);
+            updateChangesList();
+            showNotification('Change rejected', 'info');
+            autoSave();
+        }
+        
+        // Table functionality
+        function initializeTableSizeSelector() {
+            const tableSizeSelector = document.getElementById('table-size-selector');
+            tableSizeSelector.innerHTML = '';
+            
+            for (let row = 0; row < 10; row++) {
+                for (let col = 0; col < 10; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'table-cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    cell.addEventListener('mouseenter', function() {
+                        const row = parseInt(this.dataset.row);
+                        const col = parseInt(this.dataset.col);
+                        
+                        // Update selected table size
+                        selectedTableSize = { rows: row + 1, cols: col + 1 };
+                        document.getElementById('table-size').textContent = `${selectedTableSize.rows}x${selectedTableSize.cols}`;
+                        
+                        // Highlight selected cells
+                        document.querySelectorAll('.table-cell').forEach(c => {
+                            const r = parseInt(c.dataset.row);
+                            const c_col = parseInt(c.dataset.col);
+                            
+                            if (r <= row && c_col <= col) {
+                                c.classList.add('selected');
+                            } else {
+                                c.classList.remove('selected');
+                            }
+                        });
+                    });
+                    
+                    tableSizeSelector.appendChild(cell);
+                }
+            }
+        }
+        
+        function insertTable() {
+            const rows = selectedTableSize.rows;
+            const cols = selectedTableSize.cols;
+            
+            let tableHtml = '<table border="1" style="border-collapse: collapse; width: 100%;">';
+            
+            for (let i = 0; i < rows; i++) {
+                tableHtml += '<tr>';
+                for (let j = 0; j < cols; j++) {
+                    tableHtml += '<td style="padding: 8px; border: 1px solid #ddd;">&nbsp;</td>';
+                }
+                tableHtml += '</tr>';
+            }
+            
+            tableHtml += '</table>';
+            
+            const selection = quill.getSelection();
+            if (selection) {
+                quill.clipboard.dangerouslyPasteHTML(selection.index, tableHtml);
+            } else {
+                quill.clipboard.dangerouslyPasteHTML(quill.getLength(), tableHtml);
+            }
+            
+            document.getElementById('table-modal').style.display = 'none';
+            showNotification('Table inserted', 'success');
+            autoSave();
+        }
+        
+        // Word prediction functionality
+        function toggleWordPrediction() {
+            isWordPredictionEnabled = !isWordPredictionEnabled;
+            const wordPredictionButton = document.getElementById('btn-word-prediction');
+            
+            if (isWordPredictionEnabled) {
+                wordPredictionButton.classList.add('active');
+                showNotification('Word prediction enabled', 'info');
+                
+                // Start word prediction
+                quill.on('text-change', wordPredictionHandler);
+            } else {
+                wordPredictionButton.classList.remove('active');
+                showNotification('Word prediction disabled', 'info');
+                
+                // Stop word prediction
+                quill.off('text-change', wordPredictionHandler);
+                
+                // Hide prediction popup
+                document.getElementById('word-prediction').style.display = 'none';
+            }
+        }
+        
+        function wordPredictionHandler(delta, oldDelta, source) {
+            if (source !== 'user' || !isWordPredictionEnabled) return;
+            
+            // Get current text up to cursor
+            const selection = quill.getSelection();
+            if (!selection) return;
+            
+            const text = quill.getText(0, selection.index);
+            const words = text.split(/\s+/);
+            const currentWord = words[words.length - 1];
+            
+            if (currentWord.length >= 2) {
+                // Find matching words
+                const matchingWords = commonWords.filter(word => 
+                    word.toLowerCase().startsWith(currentWord.toLowerCase()) && word !== currentWord
+                );
+                
+                if (matchingWords.length > 0) {
+                    showWordPrediction(matchingWords.slice(0, 5), selection);
+                } else {
+                    document.getElementById('word-prediction').style.display = 'none';
+                }
+            } else {
+                document.getElementById('word-prediction').style.display = 'none';
+            }
+        }
+        
+        function showWordPrediction(words, selection) {
+            const predictionPopup = document.getElementById('word-prediction');
+            predictionPopup.innerHTML = '';
+            
+            words.forEach(word => {
+                const item = document.createElement('div');
+                item.className = 'prediction-item';
+                item.textContent = word;
+                
+                item.addEventListener('click', function() {
+                    // Replace current word with prediction
+                    const text = quill.getText();
+                    const words = text.split(/\s+/);
+                    const currentWordIndex = words.length - 1;
+                    const currentWordStart = text.lastIndexOf(' ', selection.index - 1) + 1;
+                    const currentWordEnd = selection.index;
+                    
+                    quill.deleteText(currentWordStart, currentWordEnd - currentWordStart);
+                    quill.insertText(currentWordStart, word);
+                    quill.setSelection(currentWordStart + word.length);
+                    
+                    predictionPopup.style.display = 'none';
+                    autoSave();
+                });
+                
+                predictionPopup.appendChild(item);
+            });
+            
+            // Position popup near cursor
+            const editorBounds = document.getElementById('editor').getBoundingClientRect();
+            const cursorBounds = quill.getBounds(selection.index);
+            
+            predictionPopup.style.left = `${editorBounds.left + cursorBounds.left}px`;
+            predictionPopup.style.top = `${editorBounds.top + cursorBounds.bottom + 10}px`;
+            predictionPopup.style.display = 'block';
+        }
+        
+        // Toolbar customization
+        function initializeToolbarCustomizer() {
+            // Load saved toolbar settings or use defaults
+            const savedSettings = localStorage.getItem('jkwrite-toolbar-settings');
+            
+            if (savedSettings) {
+                try {
+                    toolbarSettings = JSON.parse(savedSettings);
+                } catch (error) {
+                    console.error('Error loading toolbar settings', error);
+                    toolbarSettings = {};
+                }
+            }
+            
+            // Apply settings to toolbar
+            Object.keys(toolbarSettings).forEach(buttonId => {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    if (toolbarSettings[buttonId]) {
+                        button.style.display = 'flex';
+                    } else {
+                        button.style.display = 'none';
+                    }
+                }
+            });
+            
+            // Update customizer UI
+            document.querySelectorAll('.toolbar-item').forEach(item => {
+                const buttonId = item.getAttribute('data-button');
+                if (toolbarSettings[buttonId] !== undefined) {
+                    if (toolbarSettings[buttonId]) {
+                        item.classList.add('enabled');
+                    } else {
+                        item.classList.remove('enabled');
+                    }
+                } else {
+                    // Default to enabled
+                    item.classList.add('enabled');
+                }
+            });
+        }
+        
+        function saveToolbarSettings() {
+            // Update settings from UI
+            document.querySelectorAll('.toolbar-item').forEach(item => {
+                const buttonId = item.getAttribute('data-button');
+                toolbarSettings[buttonId] = item.classList.contains('enabled');
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('jkwrite-toolbar-settings', JSON.stringify(toolbarSettings));
+            
+            // Apply settings to toolbar
+            Object.keys(toolbarSettings).forEach(buttonId => {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    if (toolbarSettings[buttonId]) {
+                        button.style.display = 'flex';
+                    } else {
+                        button.style.display = 'none';
+                    }
+                }
+            });
+            
+            showNotification('Toolbar settings saved', 'success');
+            document.getElementById('toolbar-customizer-modal').style.display = 'none';
+        }
+        
+        function resetToolbarSettings() {
+            toolbarSettings = {};
+            
+            // Reset all buttons to visible
+            document.querySelectorAll('.toolbar-button').forEach(button => {
+                button.style.display = 'flex';
+            });
+            
+            // Reset customizer UI
+            document.querySelectorAll('.toolbar-item').forEach(item => {
+                item.classList.add('enabled');
+            });
+            
+            // Clear saved settings
+            localStorage.removeItem('jkwrite-toolbar-settings');
+            
+            showNotification('Toolbar settings reset to default', 'info');
+        }
+        
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notificationContainer = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            
+            let icon, title;
+            switch (type) {
+                case 'success':
+                    icon = 'fa-check-circle';
+                    title = 'Success';
+                    break;
+                case 'error':
+                    icon = 'fa-exclamation-circle';
+                    title = 'Error';
+                    break;
+                case 'info':
+                default:
+                    icon = 'fa-info-circle';
+                    title = 'Information';
+                    break;
+            }
+            
+            notification.innerHTML = `
+                <i class="fas ${icon} notification-icon"></i>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+                <i class="fas fa-times notification-close"></i>
+            `;
+            
+            notificationContainer.appendChild(notification);
+            
+            // Add event listener to close button
+            notification.querySelector('.notification-close').addEventListener('click', function() {
+                notification.remove();
+            });
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+        
+        // Check online/offline status
+        function updateOnlineStatus() {
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            if (navigator.onLine) {
+                statusIndicator.className = 'status-indicator status-online';
+                statusText.textContent = 'Online';
+            } else {
+                statusIndicator.className = 'status-indicator status-offline';
+                statusText.textContent = 'Offline';
+            }
+        }
+        
+        // Zoom functions
+        function zoomIn() {
+            if (zoomLevel < 2) {
+                zoomLevel += 0.1;
+                applyZoom();
+            }
+        }
+        
+        function zoomOut() {
+            if (zoomLevel > 0.5) {
+                zoomLevel -= 0.1;
+                applyZoom();
+            }
+        }
+        
+        function resetZoom() {
+            zoomLevel = 1;
+            applyZoom();
+        }
+        
+        function applyZoom() {
+            const editor = document.getElementById('editor');
+            editor.style.transform = `scale(${zoomLevel})`;
+            editor.style.transformOrigin = 'top left';
+            
+            // Adjust width and height to maintain layout
+            if (zoomLevel !== 1) {
+                editor.style.width = `${100 / zoomLevel}%`;
+                editor.style.height = `${100 / zoomLevel}%`;
+            } else {
+                editor.style.width = '';
+                editor.style.height = '';
+            }
+        }
+        
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    showNotification(`Error attempting to enable fullscreen: ${err.message}`, 'error');
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Print document
+        function printDocument() {
+            window.print();
+        }
+        
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved preferences
+            const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (savedDarkMode) {
+                toggleDarkMode();
+            }
+            
+            // Initialize toolbar customizer
+            initializeToolbarCustomizer();
+            
+            // Load saved document
+            loadFromLocalStorage();
+            
+            // Check for auto-recovery
+            checkAutoRecovery();
+            
+            // Initialize table size selector
+            initializeTableSizeSelector();
+            
+            // Update online status
+            updateOnlineStatus();
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            
+            // Update last saved time every minute
+            setInterval(updateLastSavedTime, 60000);
+            
+            // Document title change
+            document.getElementById('document-title').addEventListener('input', function(e) {
+                docTitle = e.target.value || 'Untitled Document';
+                autoSave();
+            });
+            
+            // Quill editor events
+            quill.on('text-change', function() {
+                updateWordCount();
+                autoSave();
+                sendDocumentUpdate();
+            });
+            
+            // Toolbar buttons
+            document.getElementById('btn-file').addEventListener('click', function() {
+                document.getElementById('file-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-edit').addEventListener('click', function() {
+                document.getElementById('edit-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-view').addEventListener('click', function() {
+                document.getElementById('view-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-insert').addEventListener('click', function() {
+                document.getElementById('insert-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-format').addEventListener('click', function() {
+                document.getElementById('format-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-tools').addEventListener('click', function() {
+                document.getElementById('tools-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-help').addEventListener('click', function() {
+                document.getElementById('help-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-templates').addEventListener('click', function() {
+                document.getElementById('templates-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-find-replace').addEventListener('click', function() {
+                document.getElementById('find-replace-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-comments').addEventListener('click', function() {
+                document.getElementById('comments-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-track-changes').addEventListener('click', toggleTrackChanges);
+            
+            document.getElementById('btn-table').addEventListener('click', function() {
+                document.getElementById('table-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-word-prediction').addEventListener('click', toggleWordPrediction);
+            
+            document.getElementById('btn-stats').addEventListener('click', function() {
+                document.getElementById('stats-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('btn-voice').addEventListener('click', toggleVoiceTyping);
+            
+            document.getElementById('btn-collaborate').addEventListener('click', function() {
+                const panel = document.getElementById('collaboration-panel');
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+                
+                if (!peer) {
+                    initializePeer();
+                }
+            });
+            
+            document.getElementById('btn-dark-mode').addEventListener('click', toggleDarkMode);
+            
+            document.getElementById('btn-menu').addEventListener('click', function() {
+                document.getElementById('menu-modal').style.display = 'flex';
+            });
+            
+            // Modal close buttons
+            document.getElementById('file-modal-close').addEventListener('click', function() {
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('edit-modal-close').addEventListener('click', function() {
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('view-modal-close').addEventListener('click', function() {
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            document.getElementById('insert-modal-close').addEventListener('click', function() {
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('format-modal-close').addEventListener('click', function() {
+                document.getElementById('format-modal').style.display = 'none';
+            });
+            
+            document.getElementById('tools-modal-close').addEventListener('click', function() {
+                document.getElementById('tools-modal').style.display = 'none';
+            });
+            
+            document.getElementById('help-modal-close').addEventListener('click', function() {
+                document.getElementById('help-modal').style.display = 'none';
+            });
+            
+            document.getElementById('templates-modal-close').addEventListener('click', function() {
+                document.getElementById('templates-modal').style.display = 'none';
+            });
+            
+            document.getElementById('find-replace-modal-close').addEventListener('click', function() {
+                document.getElementById('find-replace-modal').style.display = 'none';
+            });
+            
+            document.getElementById('comments-modal-close').addEventListener('click', function() {
+                document.getElementById('comments-modal').style.display = 'none';
+            });
+            
+            document.getElementById('table-modal-close').addEventListener('click', function() {
+                document.getElementById('table-modal').style.display = 'none';
+            });
+            
+            document.getElementById('stats-modal-close').addEventListener('click', function() {
+                document.getElementById('stats-modal').style.display = 'none';
+            });
+            
+            document.getElementById('toolbar-customizer-modal-close').addEventListener('click', function() {
+                document.getElementById('toolbar-customizer-modal').style.display = 'none';
+            });
+            
+            document.getElementById('menu-modal-close').addEventListener('click', function() {
+                document.getElementById('menu-modal').style.display = 'none';
+            });
+            
+            document.getElementById('about-modal-close').addEventListener('click', function() {
+                document.getElementById('about-modal').style.display = 'none';
+            });
+            
+            // Collaboration panel
+            document.getElementById('collaboration-close').addEventListener('click', function() {
+                document.getElementById('collaboration-panel').style.display = 'none';
+            });
+            
+            document.getElementById('track-changes-close').addEventListener('click', function() {
+                document.getElementById('track-changes-panel').style.display = 'none';
+            });
+            
+            document.getElementById('copy-peer-id').addEventListener('click', function() {
+                const peerId = document.getElementById('peer-id').value;
+                navigator.clipboard.writeText(peerId).then(() => {
+                    showNotification('Peer ID copied to clipboard', 'success');
+                }).catch(err => {
+                    showNotification('Failed to copy Peer ID', 'error');
+                });
+            });
+            
+            document.getElementById('connect-peer').addEventListener('click', function() {
+                const peerId = document.getElementById('connect-peer-id').value.trim();
+                if (peerId) {
+                    connectToPeer(peerId);
+                    document.getElementById('connect-peer-id').value = '';
+                }
+            });
+            
+            // Recovery panel
+            document.getElementById('recovery-close').addEventListener('click', discardRecovery);
+            document.getElementById('btn-recover-document').addEventListener('click', recoverDocument);
+            document.getElementById('btn-discard-recovery').addEventListener('click', discardRecovery);
+            
+            // Templates
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const templateName = this.getAttribute('data-template');
+                    loadTemplate(templateName);
+                    document.getElementById('templates-modal').style.display = 'none';
+                });
+            });
+            
+            // Find and replace
+            document.getElementById('btn-find-next').addEventListener('click', findAndReplace);
+            document.getElementById('btn-replace').addEventListener('click', replaceNext);
+            document.getElementById('btn-replace-all').addEventListener('click', replaceAll);
+            
+            // Comments
+            document.getElementById('btn-add-comment').addEventListener('click', addComment);
+            
+            // Table
+            document.getElementById('btn-insert-table').addEventListener('click', insertTable);
+            
+            // Toolbar customizer
+            document.getElementById('btn-save-toolbar-settings').addEventListener('click', saveToolbarSettings);
+            document.getElementById('btn-reset-toolbar').addEventListener('click', resetToolbarSettings);
+            
+            // Toolbar item toggles
+            document.querySelectorAll('.toolbar-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    this.classList.toggle('enabled');
+                });
+            });
+            
+            // File menu actions
+            document.getElementById('btn-new-document').addEventListener('click', function() {
+                if (confirm('Create a new document? Unsaved changes will be lost.')) {
+                    quill.setContents([]);
+                    docTitle = 'Untitled Document';
+                    document.getElementById('document-title').value = docTitle;
+                    comments = [];
+                    changes = [];
+                    updateCommentsList();
+                    updateChangesList();
+                    updateWordCount();
+                    autoSave();
+                    document.getElementById('file-modal').style.display = 'none';
+                }
+            });
+            
+            document.getElementById('btn-open-file').addEventListener('click', function() {
+                document.getElementById('file-input').click();
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('file-input').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    importDocument(file);
+                }
+            });
+            
+            // Export options
+            document.getElementById('export-docx').addEventListener('click', function() {
+                exportDocument('docx');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('export-pdf').addEventListener('click', function() {
+                exportDocument('pdf');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('export-epub').addEventListener('click', function() {
+                exportDocument('epub');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('export-rtf').addEventListener('click', function() {
+                exportDocument('rtf');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('export-md').addEventListener('click', function() {
+                exportDocument('md');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('export-html').addEventListener('click', function() {
+                exportDocument('html');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            document.getElementById('export-txt').addEventListener('click', function() {
+                exportDocument('txt');
+                document.getElementById('file-modal').style.display = 'none';
+            });
+            
+            // Edit menu actions
+            document.getElementById('btn-undo').addEventListener('click', function() {
+                quill.history.undo();
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-redo').addEventListener('click', function() {
+                quill.history.redo();
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-cut').addEventListener('click', function() {
+                document.execCommand('cut');
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-copy').addEventListener('click', function() {
+                document.execCommand('copy');
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-paste').addEventListener('click', function() {
+                document.execCommand('paste');
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-select-all').addEventListener('click', function() {
+                quill.setSelection(0, quill.getLength());
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-find-replace-edit').addEventListener('click', function() {
+                document.getElementById('find-replace-modal').style.display = 'flex';
+                document.getElementById('edit-modal').style.display = 'none';
+            });
+            
+            // View menu actions
+            document.getElementById('btn-print').addEventListener('click', function() {
+                printDocument();
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-fullscreen').addEventListener('click', function() {
+                toggleFullscreen();
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-zoom-in').addEventListener('click', function() {
+                zoomIn();
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-zoom-out').addEventListener('click', function() {
+                zoomOut();
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-zoom-reset').addEventListener('click', function() {
+                resetZoom();
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-customize-toolbar').addEventListener('click', function() {
+                document.getElementById('toolbar-customizer-modal').style.display = 'flex';
+                document.getElementById('view-modal').style.display = 'none';
+            });
+            
+            // Insert menu actions
+            document.getElementById('btn-insert-image').addEventListener('click', function() {
+                const url = prompt('Enter image URL:');
+                if (url) {
+                    const range = quill.getSelection();
+                    quill.insertEmbed(range.index, 'image', url);
+                }
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-insert-link').addEventListener('click', function() {
+                const url = prompt('Enter URL:');
+                if (url) {
+                    const range = quill.getSelection();
+                    const text = quill.getText(range.index, range.length);
+                    if (text) {
+                        quill.formatText(range.index, range.length, 'link', url);
+                    } else {
+                        const linkText = prompt('Enter link text:');
+                        if (linkText) {
+                            quill.insertText(range.index, linkText, 'link', url);
+                        }
+                    }
+                }
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-insert-table-insert').addEventListener('click', function() {
+                document.getElementById('table-modal').style.display = 'flex';
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-insert-hr').addEventListener('click', function() {
+                const range = quill.getSelection();
+                quill.insertText(range.index, '\n');
+                quill.insertEmbed(range.index + 1, 'hr', true);
+                quill.insertText(range.index + 2, '\n');
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-insert-header').addEventListener('click', function() {
+                // This would open a header insertion dialog in a real implementation
+                showNotification('Header insertion feature coming soon', 'info');
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-insert-footer').addEventListener('click', function() {
+                // This would open a footer insertion dialog in a real implementation
+                showNotification('Footer insertion feature coming soon', 'info');
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-insert-page-break').addEventListener('click', function() {
+                const range = quill.getSelection();
+                quill.insertText(range.index, '\n');
+                quill.formatText(range.index, 1, 'page-break', true);
+                quill.insertText(range.index + 1, '\n');
+                document.getElementById('insert-modal').style.display = 'none';
+            });
+            
+            // Format menu actions
+            document.getElementById('btn-format-text').addEventListener('click', function() {
+                // This would open a text formatting dialog in a real implementation
+                showNotification('Text formatting feature coming soon', 'info');
+                document.getElementById('format-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-format-paragraph').addEventListener('click', function() {
+                // This would open a paragraph formatting dialog in a real implementation
+                showNotification('Paragraph formatting feature coming soon', 'info');
+                document.getElementById('format-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-format-styles').addEventListener('click', function() {
+                // This would open a styles dialog in a real implementation
+                showNotification('Styles feature coming soon', 'info');
+                document.getElementById('format-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-format-clear').addEventListener('click', function() {
+                const range = quill.getSelection();
+                quill.removeFormat(range.index, range.length);
+                document.getElementById('format-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-format-spacing').addEventListener('click', function() {
+                // This would open a line spacing dialog in a real implementation
+                showNotification('Line spacing feature coming soon', 'info');
+                document.getElementById('format-modal').style.display = 'none';
+            });
+            
+            // Tools menu actions
+            document.getElementById('btn-word-count').addEventListener('click', function() {
+                const text = quill.getText();
+                const words = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+                const chars = text.length;
+                const charsNoSpaces = text.replace(/\s/g, '').length;
+                
+                alert(`Word Count: ${words}\nCharacters: ${chars}\nCharacters (no spaces): ${charsNoSpaces}`);
+                document.getElementById('tools-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-spell-check').addEventListener('click', function() {
+                // This would enable spell checking in a real implementation
+                showNotification('Spell check feature coming soon', 'info');
+                document.getElementById('tools-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-translate').addEventListener('click', function() {
+                // This would open a translation dialog in a real implementation
+                showNotification('Translation feature coming soon', 'info');
+                document.getElementById('tools-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-dictionary').addEventListener('click', function() {
+                // This would open a dictionary dialog in a real implementation
+                showNotification('Dictionary feature coming soon', 'info');
+                document.getElementById('tools-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-document-stats').addEventListener('click', function() {
+                document.getElementById('stats-modal').style.display = 'flex';
+                document.getElementById('tools-modal').style.display = 'none';
+            });
+            
+            // Help menu actions
+            document.getElementById('btn-help-docs').addEventListener('click', function() {
+                // This would open documentation in a real implementation
+                showNotification('Documentation feature coming soon', 'info');
+                document.getElementById('help-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-help-shortcuts').addEventListener('click', function() {
+                // This would show keyboard shortcuts in a real implementation
+                showNotification('Keyboard shortcuts feature coming soon', 'info');
+                document.getElementById('help-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-help-feedback').addEventListener('click', function() {
+                // This would open a feedback form in a real implementation
+                showNotification('Feedback feature coming soon', 'info');
+                document.getElementById('help-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-help-about').addEventListener('click', function() {
+                document.getElementById('about-modal').style.display = 'flex';
+                document.getElementById('help-modal').style.display = 'none';
+            });
+            
+            // Menu actions
+            document.getElementById('btn-settings').addEventListener('click', function() {
+                // This would open a settings dialog in a real implementation
+                showNotification('Settings feature coming soon', 'info');
+                document.getElementById('menu-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-offline-mode').addEventListener('click', function() {
+                // This would toggle offline mode in a real implementation
+                showNotification('Offline mode feature coming soon', 'info');
+                document.getElementById('menu-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-save-to-device').addEventListener('click', function() {
+                saveToDevice();
+                document.getElementById('menu-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-load-from-device').addEventListener('click', function() {
+                loadFromDevice();
+                document.getElementById('menu-modal').style.display = 'none';
+            });
+            
+            document.getElementById('btn-auto-recovery').addEventListener('click', function() {
+                document.getElementById('recovery-panel').style.display = 'block';
+                document.getElementById('menu-modal').style.display = 'none';
+            });
+            
+            // Sidebar menu items
+            document.getElementById('menu-document').addEventListener('click', function() {
+                // This would show document list in a real implementation
+                showNotification('Document list feature coming soon', 'info');
+            });
+            
+            document.getElementById('menu-recent').addEventListener('click', function() {
+                // This would show recent documents in a real implementation
+                showNotification('Recent documents feature coming soon', 'info');
+            });
+            
+            document.getElementById('menu-shared').addEventListener('click', function() {
+                // This would show shared documents in a real implementation
+                showNotification('Shared documents feature coming soon', 'info');
+            });
+            
+            document.getElementById('menu-starred').addEventListener('click', function() {
+                // This would show starred documents in a real implementation
+                showNotification('Starred documents feature coming soon', 'info');
+            });
+            
+            document.getElementById('menu-trash').addEventListener('click', function() {
+                // This would show trash in a real implementation
+                showNotification('Trash feature coming soon', 'info');
+            });
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', function(event) {
+                const modals = document.querySelectorAll('.modal');
+                modals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Hide word prediction when clicking outside
+            document.addEventListener('click', function(event) {
+                const predictionPopup = document.getElementById('word-prediction');
+                if (!predictionPopup.contains(event.target) && event.target !== quill.root) {
+                    predictionPopup.style.display = 'none';
+                }
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                // Ctrl/Cmd + S: Save
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    saveToDevice();
+                }
+                
+                // Ctrl/Cmd + O: Open
+                if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                    e.preventDefault();
+                    document.getElementById('file-input').click();
+                }
+                
+                // Ctrl/Cmd + N: New
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    if (confirm('Create a new document? Unsaved changes will be lost.')) {
+                        quill.setContents([]);
+                        docTitle = 'Untitled Document';
+                        document.getElementById('document-title').value = docTitle;
+                        comments = [];
+                        changes = [];
+                        updateCommentsList();
+                        updateChangesList();
+                        updateWordCount();
+                        autoSave();
+                    }
+                }
+                
+                // Ctrl/Cmd + Z: Undo
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    quill.history.undo();
+                }
+                
+                // Ctrl/Cmd + Shift + Z: Redo
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+                    e.preventDefault();
+                    quill.history.redo();
+                }
+                
+                // Ctrl/Cmd + Y: Redo
+                if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                    e.preventDefault();
+                    quill.history.redo();
+                }
+                
+                // Ctrl/Cmd + F: Find
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    document.getElementById('find-replace-modal').style.display = 'flex';
+                }
+                
+                // Ctrl/Cmd + H: Replace
+                if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+                    e.preventDefault();
+                    document.getElementById('find-replace-modal').style.display = 'flex';
+                }
+                
+                // Ctrl/Cmd + B: Bold
+                if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+                    e.preventDefault();
+                    const range = quill.getSelection();
+                    quill.formatText(range.index, range.length, 'bold', !quill.getFormat(range.index, range.length).bold);
+                }
+                
+                // Ctrl/Cmd + I: Italic
+                if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+                    e.preventDefault();
+                    const range = quill.getSelection();
+                    quill.formatText(range.index, range.length, 'italic', !quill.getFormat(range.index, range.length).italic);
+                }
+                
+                // Ctrl/Cmd + U: Underline
+                if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+                    e.preventDefault();
+                    const range = quill.getSelection();
+                    quill.formatText(range.index, range.length, 'underline', !quill.getFormat(range.index, range.length).underline);
+                }
+                
+                // Ctrl/Cmd + D: Dark mode
+                if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                    e.preventDefault();
+                    toggleDarkMode();
+                }
+                
+                // Ctrl/Cmd + Shift + V: Voice typing
+                if ((e.ctrlKey || e.metaKey) && e.key === 'v' && e.shiftKey) {
+                    e.preventDefault();
+                    toggleVoiceTyping();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
